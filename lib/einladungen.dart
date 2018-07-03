@@ -12,6 +12,12 @@ class Einladung extends StatelessWidget{
 
     return new Scaffold(
       appBar: new AppBar(
+        leading:ListTile(
+          leading: Icon(Icons.arrow_back, color: Colors.white,),
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder:(context)=> Home()));
+      },
+    ),
         backgroundColor: Colors.red[800],
         title: new Text('Einladung verschicken'),
       ),
@@ -40,11 +46,11 @@ class Einladung extends StatelessWidget{
                   padding: const EdgeInsets.all(20.0),
                   child:  new RaisedButton(
                     padding: const EdgeInsets.all(10.0),
-                    onPressed: (){
+                /*    onPressed: (){
                       Navigator.push(context,
                         new MaterialPageRoute(builder: (context) =>  new Home(gruppen: gruppen,)),);
                     },
-                    color: Colors.red[800],
+                  */  color: Colors.red[800],
                     shape: RoundedRectangleBorder(side: BorderSide.none, borderRadius:  BorderRadius.circular(10.0)),
                     child: new ListTile(
                       leading: new Icon(Icons.check, color: Colors.white,),

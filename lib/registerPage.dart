@@ -1,6 +1,6 @@
-
+import 'package:http/http.dart'as http;
 import 'dart:convert';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -49,9 +49,8 @@ class RegisterState extends State<RegisterPage>{
         ,navigationBar: new CupertinoNavigationBar(middle: new Text("Sign-up"),backgroundColor:const Color.fromRGBO(0, 0, 0, 0.7),),
       )
           : new Scaffold(
-        body: new Container(
-          child:new Signup(),
-        ),
+        body: new Signup(),
+
       );
 }
 
@@ -62,10 +61,28 @@ class Signup extends StatefulWidget {
 }
 
 class signupstate extends State<Signup>{
-
+  Map usermap;
+  String username;
+  String useremail;
+  String userpw;
   final GlobalKey<ScaffoldState> _scaffoldKeySecondary = new GlobalKey<ScaffoldState>();
   final GlobalKey<FormState> _formKeySeondary = new GlobalKey<FormState>();
   final GlobalKey<FormFieldState<String>> _passwordFieldKeySecondary = new GlobalKey<FormFieldState<String>>();
+  List users;
+
+  Future<String> getUsers() async{
+    var response = await http.get(Uri.encodeFull("http://192.168.0.101:3000/api/users"),
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+    setState((){
+      var resBody = json.decode(response.body);
+      users = resBody;
+    });
+  }
+
+
 
   bool _autovalidate1 = false;
   bool _formWasEdited = false;
@@ -84,12 +101,23 @@ class signupstate extends State<Signup>{
     );
   }
 
+  void _submit(){
+    final form = _formKeySeondary.currentState;
+    if(form.validate()) {
+      form.save();
+    }
+  }
   _handleSubmitted1() async{
     final FormState form = _formKeySeondary.currentState;
     if (!form.validate()) {
       _autovalidate1 = true;
       showInSnackBar('Bitte die nötigen Felder bearbeiten.');
-    } /* else {
+    }
+    else {
+      form.save();
+    }
+
+    /* else {
       form.save();
       user1.location=null;
       user1.groupsIamin=[];
@@ -109,6 +137,7 @@ class signupstate extends State<Signup>{
       }
       Navigator.of(context).pop();
     } */
+
   }
 
   String _validateName(String value) {
@@ -138,89 +167,113 @@ class signupstate extends State<Signup>{
     final Size screenSize = MediaQuery.of(context).size;
     return new Scaffold(
       key: _scaffoldKeySecondary,
-      body: new Container(
-        child:new Form(
-          key: _formKeySeondary,
-          autovalidate: _autovalidate1,
-          child: new ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            children: <Widget>[
-              new Container(
-                child: new TextFormField(
-                  decoration: new InputDecoration(
-                    hintText: 'Name',
-                    labelText: 'Name',
-                    icon: new Icon(Icons.person),
-                    labelStyle: textStyle
+      body: new ListView(
+        children: <Widget>[
+          new Container(
+            child:new Form(
+              key: _formKeySeondary,
+              autovalidate: _autovalidate1,
+              child: new Column(
+                children: <Widget>[
+                  new Container(
+                    child: new TextFormField(
+                      onSaved: (val){
+                        username = val;
+                      },
+                      decoration: new InputDecoration(
+                        hintText: 'Name',
+                        labelText: 'Name',
+                        icon: new Icon(Icons.person),
+                        labelStyle: textStyle,
+                      ),
+                      //               onSaved: (String value) { user1.name = value; },
+                    ) ,
+                    padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
                   ),
-   //               onSaved: (String value) { user1.name = value; },
-                ) ,
-                padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
-              ),
-              new Container(
-                child: new Container(
-                  child: new TextFormField(
-                    decoration: new InputDecoration(
-                      icon: new Icon(mail),
-                      hintText: 'E-Mail',
-                      labelText: 'E-Mail',
+                  new Container(
+                    child: new Container(
+                      child: new TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        onSaved: (val){
+                          useremail = val;
+                        },
+                        decoration: new InputDecoration(
+                          icon: new Icon(mail),
+                          hintText: 'E-Mail',
+                          labelText: 'E-Mail',
+                        ),
+                        //            onSaved: (String value) { user1.EmailId = value; },
+                        validator: _validateName,
+                      ),
+                      padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
                     ),
-        //            onSaved: (String value) { user1.EmailId = value; },
-                    validator: _validateName,
+                    padding: const EdgeInsets.only(top:10.0),
                   ),
-                  padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
-                ),
-                padding: const EdgeInsets.only(top:10.0),
-              ),
-              new Container(
-                child: new Container(
-                  child: new TextFormField(
-                    key: _passwordFieldKeySecondary,
-                    decoration: new InputDecoration(
-                      hintText: 'Passwort angeben',
-                      labelText: 'Passwort *',
-                      icon: new Icon(lock_outline),
-                    ),
-                     obscureText: true,
+                  new Container(
+                    child: new Container(
+                      child: new TextFormField(
+                        key: _passwordFieldKeySecondary,
+                        onSaved: (val){
+                          userpw = val;
+                        },
+                        decoration: new InputDecoration(
+                          hintText: 'Passwort angeben',
+                          labelText: 'Passwort *',
+                          icon: new Icon(lock_outline),
+                        ),
+                        obscureText: true,
 //                    onSaved: (String value) { user1.password=value;
-//                    }, 
-                  ),
-                  padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
-                ),
-                padding: const EdgeInsets.only(top:10.0),
-              ),
-              new Container(
-                child: new Container(
-                  child:new TextFormField(
-                    decoration: new InputDecoration(
-                      hintText: 'Passwort wiederholen',
-                      labelText: 'Passwort wiederholen *',
-                      icon: new Icon(lock_outline),
+//                    },
+                      ),
+                      padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
                     ),
-                    obscureText: true,
-                    validator: _validatePassword,
+                    padding: const EdgeInsets.only(top:10.0),
                   ),
-                  padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
-                ),
-                padding: const EdgeInsets.only(top:10.0),
+                  new Container(
+                    child: new Container(
+                      child:new TextFormField(
+                        decoration: new InputDecoration(
+                          hintText: 'Passwort wiederholen',
+                          labelText: 'Passwort wiederholen *',
+                          icon: new Icon(lock_outline),
+                        ),
+                        obscureText: true,
+                        validator: _validatePassword,
+                      ),
+                      padding: const EdgeInsets.only( bottom:15.0, top:0.0,right: 20.0 ),
+                    ),
+                    padding: const EdgeInsets.only(top:10.0),
+                  ),
+                  new RoundedButton(
+                    buttonName: 'Registrieren',
+                    onTap: (){
+                      //  _handleSubmitted1();
+                      _submit();
+                      usermap = {"name": username, "pw" : userpw, "email" : useremail};
+                      http.post(
+                          "http://192.168.0.101:3000/api/users",
+                          headers:{
+                            "Content-Type": "application/json; charset=UTF-8",
+                            // "Accept": "application/json"
+                          },
+                          body: json.encode(usermap) );
+                    },
+                    width: screenSize.width,
+                    height: 50.0,
+                    bottomMargin: 10.0,
+                    borderWidth: 0.0,
+                    buttonColor: Colors.transparent,
+                  ),
+                  new Container(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: new Text('* Pflichtfelder', style: Theme.of(context).textTheme.caption),
+                  ),
+                ],
               ),
-              new RoundedButton(
-                buttonName: 'Registrieren',
-                onTap: _handleSubmitted1,
-                width: screenSize.width,
-                height: 50.0,
-                bottomMargin: 10.0,
-                borderWidth: 0.0,
-                buttonColor: Colors.transparent,
-              ),
-              new Container(
-                padding: const EdgeInsets.only(top: 20.0),
-                child: new Text('* Pflichtfelder', style: Theme.of(context).textTheme.caption),
-              ),
-            ],
+            ),
+            padding: const EdgeInsets.only(top:50.0),
           ),
-        ),
-        padding: const EdgeInsets.only(top:50.0),
+        ],
       ),
       backgroundColor: const Color.fromRGBO(0, 0, 0, 0.2),
     );

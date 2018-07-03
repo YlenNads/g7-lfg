@@ -1,9 +1,9 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'einladungen.dart';
 import 'gruppen.dart';
-import 'roundedButton.dart';
-import 'inputTextField.dart';
-
 
 class GroupMaking extends StatefulWidget{
   final List<Gruppen> gruppen;
@@ -13,7 +13,7 @@ class GroupMaking extends StatefulWidget{
 }
 
 
-String anzahl = '3';
+String anzahl = 'Unbegrenzte Mitgliederanzahl';
 class _GroupMaking extends State<GroupMaking>
 {
   final List<Gruppen> gruppen;
@@ -24,6 +24,18 @@ class _GroupMaking extends State<GroupMaking>
   _GroupMaking({Key key, @required this.gruppen});
 
   var pw = false;
+
+/*Future<String> getDataGroup() async{
+    var response = await http.get("https://localhost/api/groups",
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+    print(response.body);
+    List data = json.decode(response.body);
+    print(data[1]["title"]);
+  }
+*/
 
   @override
   Widget build(BuildContext context) {
@@ -86,13 +98,12 @@ class _GroupMaking extends State<GroupMaking>
                         ),
                         onPressed: (){
                           _submit();
-                          gruppen.add(new Gruppen(gruppenName, anzahl.toString()));
                           if(formKey.currentState.validate()){
+                            gruppen.add(new Gruppen(gruppenName, anzahl));
                             Navigator.push(context, new MaterialPageRoute(builder: (context) => new Einladung(gruppen: gruppen,)));
                           }
                         },
                       ),
-
                     ],
                   ),
                 ),
@@ -120,7 +131,6 @@ class _PasswordField extends State<PasswordField>{
 
   void _handleTap(value){
     setState(() {
-      //_pwAktive != _pwAktive;
       if(_pwAktive){
         _pwAktive = false;
       }else{
@@ -160,7 +170,7 @@ class _PasswordField extends State<PasswordField>{
           children: <Widget>[
             Text('Passwort:',style: TextStyle(color: Colors.black), ),
             Checkbox(
-              activeColor: Colors.black,
+              activeColor: Colors.red,
               value: _pwAktive ? true : false,
               onChanged: _handleTap,
             ),
@@ -222,9 +232,10 @@ class _MemberField extends State<MemberField>{
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
-            Text('Passwort:',style: TextStyle(color: Colors.black), ),
-            Checkbox(
-              activeColor: Colors.black,
+            Text('Begrentze Mitgliederzahl:',style: TextStyle(color: Colors.black), ),
+            Switch(
+              activeColor: Colors.red[900],
+              activeTrackColor: Colors.red[300],
               value: _mAktive ? true : false,
               onChanged: _handleTap,
             ),

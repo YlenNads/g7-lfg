@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'groupeMaking.dart';
 import 'einladungen.dart';
 import 'chat.dart';
-import 'dart:async';
 import 'package:map_view/map_view.dart';
 import 'roundedButton.dart';
 import 'locationMap.dart';
 import 'gruppen.dart';
 import 'groupScreen.dart';
+import 'dart:convert';
+import 'dart:async';
+import 'package:http/http.dart' as http;
 
 
 class Home extends StatefulWidget{
-  final List<Gruppen> gruppen;
-  Home({Key key, @required this.gruppen}) : super(key:key);
+  final String user_email;
+  Home({Key key, @required this.user_email}):super(key:key);
   @override
-  _HomeBar createState() => new _HomeBar(gruppen: gruppen);
+  //_HomeBar createState() => new _HomeBar(gruppen: gruppen);
+  // Für DB:
+    _HomeBar createState() => new _HomeBar(user_email: user_email);
+
 }
 
 enum NavItems{
@@ -23,9 +28,34 @@ enum NavItems{
 }
 
 class _HomeBar extends State<Home>{
-  final List<Gruppen> gruppen;
-  _HomeBar({Key key, @required this.gruppen});
+  final String user_email;
+  String user_name;
+  _HomeBar({Key key, @required this.user_email});
+  List user;
+  List gruppen;
+  var responseb;
+  Future<String> getGroup() async{
+    var response = await http.get(Uri.encodeFull("http://192.168.0.101:3000/api/users" ),
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+    setState((){
+      var resBody = json.decode(response.body);
+      responseb = jsonDecode(response.body);
+      gruppen = resBody;
+    });
+  }
 
+  String _setName(){
+    for (int i = 0; i< gruppen.length;i++){
+      if (gruppen[i]["email"] == user_email){
+        user_name = gruppen[i]["name"];
+        return user_name;
+      }
+    }
+    return "User";
+  }
 
 
   final list = ListTile.divideTiles(tiles: null);
@@ -39,6 +69,7 @@ class _HomeBar extends State<Home>{
 
     }
   }
+  @override
   Widget build(BuildContext context) {
 
     return new MaterialApp(
@@ -56,7 +87,13 @@ class _HomeBar extends State<Home>{
             ),
             appBar: new AppBar(
               backgroundColor: Colors.red[800],
-              title: new Text('Home'),
+              title: new Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  new Text ("Home", style: TextStyle(color: Colors.white),),
+                  new Text (_setName(), style: TextStyle(color: Colors.white),),
+                ],
+              ),
               actions: <Widget>[
                new PopupMenuButton<NavItems>(
                  onSelected: _navItems,
@@ -78,37 +115,41 @@ class _HomeBar extends State<Home>{
             body: new Center(
               child: new Container(
                 padding: new EdgeInsets.all(10.0),
-                child: ListView.builder(
-                        itemCount: gruppen.length,
+                  child: ListView.builder(
+                      // für die DB
+                      itemCount: gruppen == null ? 0 : gruppen.length,
+                       // itemCount: gruppen.length,
                         addAutomaticKeepAlives: true,
                         itemBuilder: (context, index) {
                           return new Container(
                             child: Card(
                                 color: Colors.red[800],
                                 child: ListTile(
-                                  leading: const Icon(Icons.person, color: Colors.white,),
-                                  title: Text(gruppen[index].name + '$index', style: new TextStyle(color: Colors.white),),
-                                  subtitle: Text(gruppen[index].member,style: new TextStyle(color: Colors.white)),
-                                  onTap: () {
-                                   Navigator.push(context, new MaterialPageRoute(builder: (context) => GroupScreen(gruppe: gruppen[index],gruppen: gruppen,)),
-                                  );
-                                  },
+                                  leading: const Icon(Icons.group, color: Colors.white,),
+                                  //title: Text(gruppen[index]["name"], style: new TextStyle(color: Colors.white),),
+                                  //subtitle: Text("Anzahl: " + gruppen[index]["email"]),
+                                  title: Text(gruppen[index]["name"], style: TextStyle(color: Colors.white),),
+                                  //title: Text(gruppen[index].name, style: new TextStyle(color: Colors.white),),
+                                  //subtitle: Text(gruppen[index].maximalzahl,style: new TextStyle(color: Colors.white)),
+                                  /*onTap: () {
+                                   // Navigator.push(context, new MaterialPageRoute(builder: (context) => GroupScreen(gruppe: gruppen[index],gruppen: gruppen,)),);
+                                    },*/
                                 )
                             ),
                           );
-                        }
-                    ),
-
-
-
+                        }),
               ),
             ),
-    ),
-    ),
+          ),
+      ),
     );
   }
-
-
+  @override
+  void initState(){
+    super.initState();
+   // this.getDataGroup();
+    this.getGroup();
+  }
 }
 
 

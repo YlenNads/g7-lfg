@@ -7,11 +7,12 @@ part 'gruppen.g.dart';
 
 class Gruppen extends Object with _$GruppenSerializerMixin{
 
-  Gruppen(this.name, this.member,);
+  Gruppen(this.name, this.maximalzahl,);
 
   String name;
-  String member;
-  String passwort;
+  String maximalzahl;
+  String members;
+  String objectID;
 
   factory Gruppen.fromJson(Map<String,dynamic> json)=> _$GruppenFromJson(json);
  // @JsonKey(name: 'registration_date_millis')

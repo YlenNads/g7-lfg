@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 //import 'package:flutter/services.dart';
 import 'inputTextField.dart';
@@ -5,6 +8,7 @@ import 'roundedButton.dart';
 import 'home.dart';
 import 'registerPage.dart';
 import 'gruppen.dart';
+import 'package:http/http.dart' as http;
 
 
 
@@ -35,7 +39,11 @@ class Login extends StatefulWidget {
 class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
 
   bool _first=true;
-
+  String user_email;
+  String user_pw;
+  String user_email1 = "meName";
+  String user_pw1 = "wertzu";
+  Map usermap;
 
   final IconData mail = const IconData(0xe158, fontFamily: 'MaterialIcons');
   final IconData lock_outline = const IconData(0xe899, fontFamily: 'MaterialIcons');
@@ -48,9 +56,37 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
   Animation<Color> animation;
   AnimationController controller;
 
+  final String group_url = "http://swapi.co/api/films";
+  final String user_url = "http://192.168.0.101:3000/api/users";
+  List user;
+  List gruppen;
+
+ /* Future<String> getDataGroup() async{
+    var response = await http.get(Uri.encodeFull(group_url),
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+    List data = json.decode(response.body);
+
+  }
+*/
 
 
 
+  Future<String> getDataUser() async{
+    var response = await http.get(Uri.encodeFull(user_url),
+        headers: {
+          "Accept": "application/json"
+        }
+    );
+
+    setState(() {
+      var resBody = json.decode(response.body);
+      user = resBody;
+    });
+
+  }
 
 
 
@@ -68,11 +104,13 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
       await googleSignIn.signIn();
     }
   } */
+/*
   _handleSubmitted1() async {
     setState(() {
       /* _isgooglesigincomplete = false; */
 
     });
+    */
 /*     await _ensureLoggedIn();
     GoogleSignInAccount user = googleSignIn.currentUser;
     UserData guser=new UserData();
@@ -95,31 +133,30 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
       loggedInUsername=user.displayName;
       await Navigator.of(context).pushReplacementNamed('/b');
     } */
+  //}
+
+  void _submit(){
+    final form = _formKey.currentState;
+    if(form.validate()) {
+      form.save();
+    }
   }
 
   _handleSubmitted() async {
 
 
     final FormState form = _formKey.currentState;
+
     if (!form.validate()) {
       _autovalidate = true;
       showInSnackBar('Bitte die nötigen Angaben machen.');
     } else {
-
-      /*      form.save();
-      final Map usrmap=await getUsers();
-      usrmap.forEach(
-        (k,v) async {
-          if(logindet.EmailId==v.EmailId){
-            loggedinUser=logindet.EmailId;
-            loggedInUsername=v.name;
-            await Navigator.of(context).pushReplacementNamed('/b');
-          }
-        }); */
+      form.save();
+    }
       showInSnackBar(
           'Email oder Password sind inkorrekt. Bitte erneut versuchen.'
       );
-    }
+
   }
 
   String _validateName(String value) {
@@ -145,6 +182,7 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
 
   @override
   void initState() {
+    this.getDataUser();
     controller = new AnimationController(
         duration: const Duration(seconds: 10), vsync: this);
     animation = new ColorTween(begin: Colors.red, end: Colors.red).animate(controller)
@@ -223,8 +261,9 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
                                 iconColor: const Color.fromRGBO(255, 255, 255, 0.4),
                                 bottomMargin: 20.0,
                                 width: screenSize.width-50,
-                                validateFunction: _validateName,
+                             //   validateFunction: _validateName,
                                 onSaved: (String email) {
+                                  user_email = email;
                                   //                   logindet.EmailId = email;
                                 }
                             ),
@@ -241,6 +280,7 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
                               bottomMargin: 20.0,
                               width: screenSize.width-50,
                               onSaved: (String pass) {
+                                user_pw = pass;
                                 //                    logindet.password = pass;
                               }
                           ),
@@ -252,7 +292,26 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
                       children: <Widget>[
                         new RoundedButton(
                           buttonName: 'Einloggen',
-                          onTap: _handleSubmitted,
+                         // onTap: _handleSubmitted,
+                          onTap: () {
+                            _submit();
+                            usermap = {"email": user_email, "pw" : user_pw};
+                            var url = "http://192.168.0.101:3000/api/authentication";
+                            http.post(url, body: json.encode(usermap),headers:{
+                              "Content-Type": "application/json; charset=UTF-8",
+                              // "Accept": "application/json"
+                            }, )
+                                .then((response) {
+                              print("Response status: ${response.statusCode}");
+                              print("Response body: ${response.body}");
+                              var resip = jsonDecode(response.body);
+                              if (resip["success"] == "true") {
+                                Navigator.push(context, new MaterialPageRoute(
+                                    builder: (context) => new Home(user_email: user_email,)));
+                              }
+                              });
+
+                          },
                           width: screenSize.width-50,
                           height: 50.0,
                           bottomMargin: 10.0,
@@ -280,12 +339,14 @@ class LoginForm extends State<Login> with SingleTickerProviderStateMixin{
                         new RoundedButton(
                           buttonName: 'Weiter ohne login',
                           onTap: () {
-                            Navigator.push(
+                           /* Navigator.push(
                               context,
-                              new MaterialPageRoute(builder: (context) => new Home(gruppen: List.generate(
+                             new MaterialPageRoute(builder: (context) => new Home(gruppen: List.generate(
                                 2, (i) => Gruppen('Gruppe ', 'Mitglieder: 20', ),
                               ),)),
                             );
+                            */
+                           Navigator.push(context, new MaterialPageRoute(builder: (context) => new Home()));
                             Navigator.of(context).pushNamed('/a');
                           },
                           highlightColor:const Color.fromRGBO(255, 255, 255, 0.1),

@@ -7,13 +7,19 @@ part of 'gruppen.dart';
 // **************************************************************************
 
 Gruppen _$GruppenFromJson(Map<String, dynamic> json) =>
-    new Gruppen(json['name'] as String, json['member'] as String)
-      ..passwort = json['passwort'] as String;
+    new Gruppen(json['name'] as String, json['maximalzahl'] as String)
+      ..members = json['members'] as String
+      ..objectID = json['objectID'] as String;
 
 abstract class _$GruppenSerializerMixin {
   String get name;
-  String get member;
-  String get passwort;
-  Map<String, dynamic> toJson() =>
-      <String, dynamic>{'name': name, 'member': member, 'passwort': passwort};
+  String get maximalzahl;
+  String get members;
+  String get objectID;
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'maximalzahl': maximalzahl,
+        'members': members,
+        'objectID': objectID
+      };
 }

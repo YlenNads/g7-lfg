@@ -33,7 +33,7 @@ class _GroupScreen extends State<GroupScreen>{
             leading: ListTile(
               leading: Icon(Icons.arrow_back, color: Colors.white,),
               onTap: (){
-                Navigator.push(context, MaterialPageRoute(builder:(context)=> Home(gruppen: gruppen,)));
+                Navigator.push(context, MaterialPageRoute(builder:(context)=> Home()));
               },
             ),
             backgroundColor: Colors.red[800],
